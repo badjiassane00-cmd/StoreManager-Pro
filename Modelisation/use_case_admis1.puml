@@ -1,0 +1,67 @@
+@startuml diagramme-cas-utilisation-admin-2
+left to right direction
+
+
+actor "Admin Boutique" as Admin
+
+rectangle "Gestion des Dettes" {
+
+  usecase "Rechercher une dette\npar client" as UC_SearchDette
+  usecase "Consulter les articles\nd'une vente à crédit" as UC_DetteArticles
+  usecase "Consulter l'historique\ndes paiements" as UC_DettePaiements
+  usecase "Enregistrer un paiement /\nremboursement" as UC_AddPayment
+  usecase "Définir un montant de\nremboursement rapide" as UC_QuickRepay
+  usecase "Mettre à jour le statut\nde la dette" as UC_UpdateStatut
+  usecase "Consulter les bordereaux\nde livraison (BL)" as UC_ListBL
+  usecase "Consulter les lignes\nd'un bordereau" as UC_BLLignes
+  usecase "Réceptionner un\nBordereau de Livraison" as UC_ReceiveBL
+  usecase "Incrémenter le stock" as UC_IncStock
+
+  usecase "Gérer les Produits" as UC_GestionProduits
+  usecase "Ajouter un produit" as UC_AddProduct
+  usecase "Rechercher / filtrer\nun produit" as UC_SearchProduct
+  usecase "Gérer les Clients" as UC_GestionClients
+  usecase "Ajouter un client" as UC_AddClient
+  usecase "Gérer les Fournisseurs" as UC_GestionFournisseurs
+  usecase "Ajouter un fournisseur" as UC_AddSupplier
+
+
+
+  usecase "Gérer les Utilisateurs\n& Rôles" as UC_GestionUsers
+  usecase "Restreindre l'accès\npar profil" as UC_RestrictAccess
+}
+
+Admin --> UC_SearchDette
+Admin --> UC_ListBL
+Admin --> UC_GestionProduits
+Admin --> UC_GestionClients
+Admin --> UC_GestionFournisseurs
+Admin --> UC_GestionUsers
+
+UC_SearchDette --> UC_Login <<include>>
+UC_ListBL --> UC_Login <<include>>
+UC_GestionProduits --> UC_Login <<include>>
+UC_GestionClients --> UC_Login <<include>>
+UC_GestionFournisseurs --> UC_Login <<include>>
+UC_GestionUsers --> UC_Login <<include>>
+
+UC_SearchDette ..> UC_DetteArticles : <<include>>
+UC_SearchDette ..> UC_DettePaiements : <<include>>
+UC_SearchDette ..> UC_AddPayment : <<extend>>
+UC_AddPayment ..> UC_QuickRepay : <<include>>
+UC_AddPayment ..> UC_UpdateStatut : <<include>>
+
+UC_ListBL ..> UC_BLLignes : <<include>>
+UC_ListBL ..> UC_ReceiveBL : <<extend>>
+UC_ReceiveBL ..> UC_IncStock : <<include>>
+
+UC_GestionProduits ..> UC_AddProduct : <<include>>
+UC_GestionProduits ..> UC_SearchProduct : <<include>>
+UC_GestionClients ..> UC_AddClient : <<include>>
+UC_GestionFournisseurs ..> UC_AddSupplier : <<include>>
+
+UC_GestionUsers ..> UC_RestrictAccess : <<include>>
+
+
+
+@enduml

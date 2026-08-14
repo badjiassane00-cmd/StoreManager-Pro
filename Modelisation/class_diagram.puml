@@ -1,0 +1,126 @@
+@startuml class_diagram_storemanager
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+hide circle
+
+class Utilisateur {
+  -id : int
+  -nom : string
+  -email : string
+  -motDePasse : string
+  -role : Role
+  -actif : bool
+  +seConnecter(email, motDePasse) : bool
+  +aLeDroit(action) : bool
+}
+
+enum Role {
+  ADMIN
+  VENTE
+  STOCK
+  INVENTAIRE
+}
+
+class Produit {
+  -id : int
+  -nom : string
+  -prixUnitaire : float
+  -quantiteStock : int
+  -seuilAlerte : int
+  +decrementerStock(qte) : void
+  +incrementerStock(qte) : void
+  +estEnRupture() : bool
+}
+
+class Client {
+  -id : int
+  -nom : string
+  -telephone : string
+  -email : string
+  -limiteCredit : float
+  +calculerEncours() : float
+  +peutEmprunter(montant) : bool
+}
+
+class Fournisseur {
+  -id : int
+  -nom : string
+  -telephone : string
+  -adresse : string
+  -email : string
+}
+
+class Commande {
+  -id : int
+  -dateVente : date
+  -montantTotal : float
+  -montantVerse : float
+  -statutPaiement : StatutPaiement
+  +calculerTotal() : float
+  +enregistrer() : bool
+}
+
+enum StatutPaiement {
+  COMPTANT
+  CREDIT
+}
+
+class LigneCommande {
+  -id : int
+  -quantite : int
+  -prixUnitaire : float
+  +calculerSousTotal() : float
+}
+
+class Dette {
+  -id : int
+  -montantInitial : float
+  -montantPaye : float
+  -statut : StatutDette
+  +rembourser(montant) : void
+  +calculerReste() : float
+  +mettreAJourStatut() : void
+}
+
+enum StatutDette {
+  NON_SOLDEE
+  PARTIELLE
+  SOLDEE
+}
+
+class BonLivraison {
+  -id : int
+  -dateReception : date
+  -montantFacture : float
+  -statutReglement : StatutReglement
+  +receptionner() : void
+}
+
+enum StatutReglement {
+  PAYEE
+  IMPAYEE
+}
+
+class LigneBonLivraison {
+  -id : int
+  -quantiteLivree : int
+  -coutAchat : float
+}
+
+Utilisateur "1" --> "1" Role
+Utilisateur "1" -- "0..*" Commande : enregistre >
+Utilisateur "1" -- "0..*" BonLivraison : receptionne >
+Client "1" -- "0..*" Commande : passe >
+Client "1" -- "0..*" Dette : possede >
+Commande "1" -- "1..*" LigneCommande : contient >
+LigneCommande "*" -- "1" Produit : concerne >
+Commande "1" -- "0..1" Dette : genere >
+Fournisseur "1" -- "0..*" BonLivraison : livre >
+BonLivraison "1" -- "1..*" LigneBonLivraison : contient >
+LigneBonLivraison "*" -- "1" Produit : concerne >
+Commande --> StatutPaiement
+Dette --> StatutDette
+BonLivraison --> StatutReglement
+
+@enduml

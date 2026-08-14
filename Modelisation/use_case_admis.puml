@@ -1,0 +1,55 @@
+@startuml diagramme-
+left to right direction
+
+
+actor "Admin Boutique" as Admin
+
+rectangle "Authentification" {
+  usecase "Se connecter" as UC_Login
+ 
+
+  usecase "Consulter le Dashboard KPI" as UC_Dash
+  usecase "Consulter le flux des\nventes récentes" as UC_DashVentes
+  usecase "Consulter les dettes\ndu jour à recouvrer" as UC_DashDettes
+  usecase "Consulter les ruptures &\nstocks critiques" as UC_DashRuptures
+  usecase "Réapprovisionner\nrapidement un produit" as UC_QuickSupply
+  usecase "Consulter les livraisons\nattendues du jour" as UC_DashLivraisons
+  usecase "Consulter les clients\ndébiteurs" as UC_DashDebiteurs
+  usecase "Consulter le solde\npar fournisseur" as UC_DashSolde
+  usecase "Payer un fournisseur\n(solde global)" as UC_PaySupplier
+  usecase "Payer une facture\nfournisseur précise" as UC_PayInvoice
+  usecase "Enregistrer une Vente" as UC_Vente
+  usecase "Ajouter un produit au panier" as UC_AddCart
+  usecase "Retirer un produit du panier" as UC_RemoveCart
+  usecase "Vérifier la limite de\ncrédit du client" as UC_CheckCredit
+  usecase "Décrémenter le stock" as UC_DecStock
+  usecase "Consulter le registre\ngénéral des ventes" as UC_RegistreVentes
+
+}
+
+
+Admin --> UC_Dash
+Admin --> UC_Vente
+
+UC_Login <.. UC_Dash : <<include>>
+UC_Login <.. UC_Vente : <<include>>
+
+UC_Dash ..> UC_DashVentes : <<include>>
+UC_Dash ..> UC_DashDettes : <<include>>
+UC_Dash ..> UC_DashRuptures : <<include>>
+UC_Dash ..> UC_DashLivraisons : <<include>>
+UC_Dash ..> UC_DashDebiteurs : <<include>>
+UC_Dash ..> UC_DashSolde : <<include>>
+UC_DashRuptures ..> UC_QuickSupply : <<extend>>
+UC_DashSolde ..> UC_PaySupplier : <<extend>>
+UC_DashSolde ..> UC_PayInvoice : <<extend>>
+
+UC_Vente ..> UC_AddCart : <<include>>
+UC_Vente ..> UC_RemoveCart : <<include>>
+UC_Vente ..> UC_DecStock : <<include>>
+UC_Vente ..> UC_CheckCredit : <<extend>>
+UC_Vente ..> UC_RegistreVentes : <<include>>
+
+
+
+@enduml

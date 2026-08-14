@@ -1,0 +1,61 @@
+@startuml diagramme-cas-utilisation-vente
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Chargé de Vente" as Vente
+
+rectangle "Authentification" {
+  usecase "Se connecter" as UC_Login
+  usecase "Se déconnecter" as UC_Logout
+}
+
+rectangle "Ventes / POS" {
+  usecase "Enregistrer une Vente" as UC_Vente
+  usecase "Ajouter un produit au panier" as UC_AddCart
+  usecase "Retirer un produit du panier" as UC_RemoveCart
+  usecase "Choisir le mode de\nrèglement (comptant / crédit)" as UC_ModeReglement
+  usecase "Vérifier la limite de\ncrédit du client" as UC_CheckCredit
+  usecase "Décrémenter le stock" as UC_DecStock
+  usecase "Consulter le registre\ngénéral des ventes" as UC_RegistreVentes
+  usecase "Consulter les lignes\nd'une vente" as UC_LignesVente
+}
+
+rectangle "Gestion des Dettes" {
+  usecase "Rechercher une dette\npar client" as UC_SearchDette
+  usecase "Consulter les articles\nd'une vente à crédit" as UC_DetteArticles
+  usecase "Consulter l'historique\ndes paiements" as UC_DettePaiements
+  usecase "Enregistrer un paiement /\nremboursement" as UC_AddPayment
+  usecase "Définir un montant de\nremboursement rapide\n(tout solder / 50%)" as UC_QuickRepay
+  usecase "Mettre à jour le statut\nde la dette (EN_COURS / SOLDEE)" as UC_UpdateStatut
+}
+
+Vente --> UC_Login
+Vente --> UC_Logout
+Vente --> UC_Vente
+Vente --> UC_SearchDette
+
+UC_Login <.. UC_Vente : <<include>>
+UC_Login <.. UC_SearchDette : <<include>>
+
+UC_Vente ..> UC_AddCart : <<include>>
+UC_Vente ..> UC_RemoveCart : <<include>>
+UC_Vente ..> UC_ModeReglement : <<include>>
+UC_Vente ..> UC_DecStock : <<include>>
+UC_Vente ..> UC_RegistreVentes : <<include>>
+UC_ModeReglement ..> UC_CheckCredit : <<extend>>
+UC_RegistreVentes ..> UC_LignesVente : <<extend>>
+
+UC_SearchDette ..> UC_DetteArticles : <<include>>
+UC_SearchDette ..> UC_DettePaiements : <<include>>
+UC_SearchDette ..> UC_AddPayment : <<extend>>
+UC_AddPayment ..> UC_QuickRepay : <<include>>
+UC_AddPayment ..> UC_UpdateStatut : <<include>>
+
+note bottom of Vente
+  Accès restreint : uniquement
+  aux vues POS et Dettes
+  (rolePermissions.vente)
+end note
+
+@enduml

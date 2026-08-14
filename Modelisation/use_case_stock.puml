@@ -1,0 +1,57 @@
+@startuml diagramme-cas-utilisation-stock
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Chargé de Stock" as Stock
+
+rectangle "Authentification" {
+  usecase "Se connecter" as UC_Login
+  usecase "Se déconnecter" as UC_Logout
+}
+
+rectangle "Approvisionnements" {
+  usecase "Consulter les bordereaux\nde livraison (BL)" as UC_ListBL
+  usecase "Consulter les lignes\nd'un bordereau" as UC_BLLignes
+  usecase "Réceptionner un\nBordereau de Livraison" as UC_ReceiveBL
+  usecase "Saisir les quantités\nréellement livrées" as UC_SaisirQte
+  usecase "Incrémenter le stock" as UC_IncStock
+}
+
+rectangle "Catalogue (Produits & Fournisseurs)" {
+  usecase "Gérer les Produits" as UC_GestionProduits
+  usecase "Ajouter un produit" as UC_AddProduct
+  usecase "Rechercher / filtrer\nun produit" as UC_SearchProduct
+  usecase "Consulter la valeur\ntotale du stock" as UC_ValeurStock
+  usecase "Gérer les Fournisseurs" as UC_GestionFournisseurs
+  usecase "Ajouter un fournisseur" as UC_AddSupplier
+}
+
+Stock --> UC_Login
+Stock --> UC_Logout
+Stock --> UC_ListBL
+Stock --> UC_GestionProduits
+Stock --> UC_GestionFournisseurs
+
+UC_Login <.. UC_ListBL : <<include>>
+UC_Login <.. UC_GestionProduits : <<include>>
+
+UC_ListBL ..> UC_BLLignes : <<include>>
+UC_ListBL ..> UC_ReceiveBL : <<extend>>
+UC_ReceiveBL ..> UC_SaisirQte : <<include>>
+UC_ReceiveBL ..> UC_IncStock : <<include>>
+
+UC_GestionProduits ..> UC_AddProduct : <<include>>
+UC_GestionProduits ..> UC_SearchProduct : <<include>>
+UC_GestionProduits ..> UC_ValeurStock : <<include>>
+UC_GestionFournisseurs ..> UC_AddSupplier : <<include>>
+
+note bottom of Stock
+  Accès restreint : uniquement
+  aux vues Approvisionnements et Catalogue
+  (rolePermissions.stock)
+  -> pas d'accès à la gestion des Clients
+  ni au paiement des fournisseurs (réservé Admin)
+end note
+
+@enduml

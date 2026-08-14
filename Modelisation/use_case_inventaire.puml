@@ -1,0 +1,30 @@
+@startuml diagramme
+
+
+actor "Inventaire" as Inventaire
+
+rectangle "Authentification" {
+  usecase "Se connecter" as UC_Login
+
+
+  usecase "Consulter le Catalogue\nProduits" as UC_ConsultProduits
+  usecase "Rechercher / filtrer\nun produit" as UC_SearchProduct
+  usecase "Consulter la quantité\nen stock d'un produit" as UC_ConsultStock
+  usecase "Consulter la valeur\ntotale du stock" as UC_ValeurStock
+  usecase "Consulter le répertoire\ndes Fournisseurs" as UC_ConsultFournisseurs
+
+
+
+
+Inventaire --> UC_ConsultProduits
+
+UC_Login <.. UC_ConsultProduits : <<include>>
+
+UC_ConsultProduits ..> UC_SearchProduct : <<include>>
+UC_ConsultProduits ..> UC_ConsultStock : <<include>>
+UC_ConsultProduits ..> UC_ValeurStock : <<include>>
+UC_ConsultProduits ..> UC_ConsultFournisseurs : <<include>>
+
+}
+
+@enduml
