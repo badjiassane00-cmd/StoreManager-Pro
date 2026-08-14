@@ -34,7 +34,7 @@ Ajout des contraintes CHECK pour contrôler certaines valeurs.
 Création du script PostgreSQL schema.sql.
 Création du script SQLite schema_sqlite.sql.
 Vérification de la cohérence des relations entre les tables.
-Difficultés / Obstacles :
+**Difficultés / Obstacles** :
 J'ai eu des difficultés à passer du PostgreSQL à SQLite.
 J'ai d'abord créé des tables supplémentaires pour les paiements, puis j'ai constaté qu'elles ne correspondaient pas directement au diagramme de classes.
 J'ai donc repris le schéma afin de rester fidèle au modèle UML.
@@ -47,11 +47,10 @@ Ce qui a été fait :
 Création de la classe Database en tant que Singleton : elle garantit qu'une seule et unique instance de la classe (et donc une seule connexion PDO) existe pendant toute l'exécution du programme, au lieu d'ouvrir une nouvelle connexion à chaque fois qu'on a besoin de parler à la base de données.
 Le constructeur __construct() est déclaré private. Concrètement, ça veut dire qu'il est interdit d'écrire new Database() n'importe où ailleurs dans le code (PHP refuserait avec une erreur). La seule façon d'obtenir l'objet est de passer par la méthode statique getInstance().
 Deux propriétés private static ont été déclarées : $instance (qui contiendra l'unique objet Database) et $pdo (qui contiendra l'unique connexion PDO). Le mot-clé static signifie que ces propriétés appartiennent à la classe elle-même, pas à un objet en particulier : leur valeur est donc partagée par tout le programme, peu importe combien de fois on appelle Database::getInstance().
-La méthode statique getInstance() fait un simple test : si self::$instance vaut encore null (première fois qu'on l'appelle), elle crée l'unique objet avec new self(). Sinon, elle renvoie directement l'objet déjà créé. Résultat : new self() n'est exécuté qu'une seule fois dans toute l'application.
-La méthode connexion() fait le vrai travail de connexion :
-Elle vérifie d'abord si self::$pdo est déjà rempli — si oui, elle le retourne tel quel (pas de reconnexion inutile).
-Sinon, elle tente new PDO("pgsql:host=localhost;dbname=storemanager;port=5432", "postgres", "narutobadji") dans un bloc try, pour se connecter à PostgreSQL.
-Si cette connexion réussit, deux attributs sont configurés sur l'objet PDO : PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC (pour que chaque ligne récupérée en base soit renvoyée sous forme de tableau associatif ['colonne' => valeur], plus lisible qu'un tableau numérique) et PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION (pour que toute erreur SQL déclenche une exception PHP au lieu d'échouer silencieusement).
-Si la connexion à PostgreSQL échoue (serveur PostgreSQL non démarré, mauvais identifiants, etc.), PHP lève automatiquement une PDOException. Le bloc catch (PDOException $ex) intercepte cette erreur et bascule sur un plan B : une connexion SQLite locale, vers un fichier erp.db situé à la racine du projet (chemin construit avec dirname(__DIR__, 2), qui remonte de deux niveaux de dossiers depuis src/Core/ pour arriver à la racine).
-Le mécanisme try { ... } catch (PDOException $ex) { ... } était totalement nouveau : il a fallu comprendre qu'une exception est un objet d'erreur que PHP "lance" (throw, ici fait automatiquement par PDO) quand quelque chose échoue, et que le code placé dans catch ne s'exécute que si une erreur a réellement été levée dans le try. Sans ce mécanisme, une erreur de connexion PostgreSQL aurait simplement fait planter tout le script avec une page blanche.
+
+- **Difficultés / Obstacles** :
+- 
+  - Ayant commencé à apprendre la POO seulement hier, la notion de **Singleton** n'était pas évidente au début : comprendre pourquoi le constructeur doit être `private` (pour empêcher `new Database()` de l'extérieur) et pourquoi on utilise des propriétés `static` (pour qu'il n'existe qu'**une seule** instance et **une seule** connexion PDO partagée dans toute l'application) a demandé plusieurs relectures.
+  - Le mécanisme `try/catch` pour le fallback PostgreSQL → SQLite était aussi nouveau : il a fallu comprendre qu'une `PDOException` est levée automatiquement par PHP quand la connexion échoue, et que le `catch` permet de "rattraper" cette erreur pour exécuter un plan B au lieu de faire planter le script.
+  - Petite hésitation sur le diagramme de classes concernant les associations entre `Commande` et `Dette` (relation 0..1, une commande ne génère une dette que si elle est à crédit).
 
