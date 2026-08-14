@@ -10,4 +10,4 @@ Projet : StoreManager Pro (ERP PHP/POO)
 - **Heure de réalisation** : 20H25 
  Diagrammes Use Case & Classes dans /docs/
 
-les difficultés sont dû à l'hésitation sur les classes et aussi comment représenter une classe en POO
+les difficultés sont dû à l'hésitation sur les classes
