@@ -34,8 +34,18 @@ Petite hésitation sur le diagramme de classes concernant les associations entre
 ###  [Samedi - Phase 2.1] : Repositories & SQL Sécurisé
 
   **Heure de réalisation** : 11h00 - 13h00
- **Ce qui a été fait** :Repositories & SQL Sécurisé
+ **Ce qui a été fait** :Repositories & SQL Sécurisé 
  Ce qui a été fait : Création des entités PHP (Produit, Client, Commande, Dette, Fournisseur, BonLivraison, etc.). Ce sont des  classes avec des propriétés typées Création des Repositories (ProduitRepository, ClientRepository, FournisseurRepository) qui contiennent toutes les requêtes SQL, avec des requêtes préparées PDO (paramètres nommés comme :nom, :id) pour se protéger des injections SQL. Chaque Repository a une méthode privée qui transforme une ligne SQL (tableau associatif) en objet PHP correspondant.
 **Difficultés / Obstacles** :
 la première c'était comment convertir les données venant de la base de données pour pouvoir esperer les utiliser .
  Autre difficulté : ILIKE (recherche insensible à la casse) ne marche qu'avec PostgreSQL, pas avec SQLite. J'ai dû utiliser LOWER(...) LIKE LOWER(...) à la place, pour que la recherche fonctionne pareil sur les deux bases à cause du fallback automatique.
+
+
+
+ ###  [Samedi - Phase 2.3] : Service Métier Vente POS & Transaction SQL
+
+ **Heure de réalisation** : 
+ **Ce qui a été fait** :VenteService avec transaction SQL
+ J'ai créé CommandeModel et DetteModel qui manquaient pour pouvoir écrire VenteService. VenteService construit une Commande à partir du panier envoyé par le formulaire (produit_id => quantité), vérifie le stock disponible et la limite de crédit du client AVANT d'ouvrir la transaction, puis fait beginTransaction / insertion de la commande + des lignes + décrémentation du stock + création de la dette si vente à crédit / commit. Si une étape échoue en cours de route (stock insuffisant détecté trop tard, erreur SQL), rollBack pour que rien ne soit enregistré à moitié.
+ **Difficultés / Obstacles** :
+ La difficulté c'était de comprendre pourquoi il fallait vérifier le stock  ET la limite de crédit AVANT de commencer la transaction plutôt que pendant : si on vérifie après beginTransaction, on doit quand même faire un rollBack propre, donc autant filtrer les cas évidents avant pour ne pas ouvrir une transaction pour rien. Autre chose pas évidente : pourquoi je dois d'abord créer la Commande en base (pour avoir son id généré par SERIAL) avant de  pouvoir créer la Dette,puisque dettes.commande_id est une clé étrangère obligatoire. Ça oblige à faire les opérations dans un ordre précis à l'intérieur de la transaction.
