@@ -21,18 +21,21 @@ Petite hésitation sur le diagramme de classes concernant les associations entre
 
 
 
-###  [Samedi - Phase 2] : POO, Repositories & Ventes POS
+###  [Samedi - Phase 2.1] : POO, Repositories & Ventes POS
 
-- **Heure de réalisation** : 09h00 - 11h00
-- **Ce qui a été fait** :
+ **Heure de réalisation** : 09h00 - 11h00
+ **Ce qui a été fait** :Entités POO Pure
   J'ai réécrit mes 12 classess de description  pour
-  qu'elles respectent l'encapsulation : propriétés en `private`, accès
-  uniquement via des méthodes `get...()`. J'ai ajouté les méthodes métier
-  prévues dans mon diagramme de classes (ex: `decrementerStock()`,
-  `rembourser()`, `aLeDroit()`). J'ai aussi corrigé deux erreurs : il
-  manquait les requires,
+  qu'elles respectent l'encapsulation : propriétés en `private`,
+ **Difficultés / Obstacles** :
+  Comprendre pourquoi mes Repository plantaient : les requires manquant , le chemin utilisé par le fallback.
+ savoir quelle methodes metiers écrit car je m'étais habitué à écrie les classes de descriptions  sans methode metiers.
 
-- **Difficultés / Obstacles** :
-  Comprendre pourquoi mes Repository plantaient : les requires manquant
- savoir quelle methodes metiers écrit car je m'étais habitué à écrie les classes de descriptions  sans methode metiers
- 
+###  [Samedi - Phase 2.1] : Repositories & SQL Sécurisé
+
+  **Heure de réalisation** : 11h00 - 13h00
+ **Ce qui a été fait** :Repositories & SQL Sécurisé
+ Ce qui a été fait : Création des entités PHP (Produit, Client, Commande, Dette, Fournisseur, BonLivraison, etc.). Ce sont des  classes avec des propriétés typées Création des Repositories (ProduitRepository, ClientRepository, FournisseurRepository) qui contiennent toutes les requêtes SQL, avec des requêtes préparées PDO (paramètres nommés comme :nom, :id) pour se protéger des injections SQL. Chaque Repository a une méthode privée qui transforme une ligne SQL (tableau associatif) en objet PHP correspondant.
+**Difficultés / Obstacles** :
+la première c'était comment convertir les données venant de la base de données pour pouvoir esperer les utiliser .
+ Autre difficulté : ILIKE (recherche insensible à la casse) ne marche qu'avec PostgreSQL, pas avec SQLite. J'ai dû utiliser LOWER(...) LIKE LOWER(...) à la place, pour que la recherche fonctionne pareil sur les deux bases à cause du fallback automatique.
