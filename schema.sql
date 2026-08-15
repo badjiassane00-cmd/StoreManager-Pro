@@ -1,5 +1,4 @@
--- StoreManager Pro - PostgreSQL
--- Phase 1.2 : Schéma SQL
+
 
 
 
