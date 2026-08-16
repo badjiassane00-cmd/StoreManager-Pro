@@ -44,8 +44,21 @@ la première c'était comment convertir les données venant de la base de donné
 
  ###  [Samedi - Phase 2.3] : Service Métier Vente POS & Transaction SQL
 
- **Heure de réalisation** : 
+ **Heure de réalisation** : 14h00 - 17h00
  **Ce qui a été fait** :VenteService avec transaction SQL
  J'ai créé CommandeModel et DetteModel qui manquaient pour pouvoir écrire VenteService. VenteService construit une Commande à partir du panier envoyé par le formulaire (produit_id => quantité), vérifie le stock disponible et la limite de crédit du client AVANT d'ouvrir la transaction, puis fait beginTransaction / insertion de la commande + des lignes + décrémentation du stock + création de la dette si vente à crédit / commit. Si une étape échoue en cours de route (stock insuffisant détecté trop tard, erreur SQL), rollBack pour que rien ne soit enregistré à moitié.
  **Difficultés / Obstacles** :
  La difficulté c'était de comprendre pourquoi il fallait vérifier le stock  ET la limite de crédit AVANT de commencer la transaction plutôt que pendant : si on vérifie après beginTransaction, on doit quand même faire un rollBack propre, donc autant filtrer les cas évidents avant pour ne pas ouvrir une transaction pour rien. Autre chose pas évidente : pourquoi je dois d'abord créer la Commande en base (pour avoir son id généré par SERIAL) avant de  pouvoir créer la Dette,puisque dettes.commande_id est une clé étrangère obligatoire. Ça oblige à faire les opérations dans un ordre précis à l'intérieur de la transaction.
+
+
+
+###  [Samedi - Phase 2.4] : POSController.php et vue views/pos/index.php.
+
+
+ **Heure de réalisation** : 17h00 - 20h00
+ **Ce qui a été fait** :POSController et vue caisse
+ J'ai ajouté Router.php et SessionManager pour avoir un vrai point d'entrée public/index.php avec des routes.
+ J'ai fait le panier pour qu'il vive entièrement dans la session PHP ($_SESSION["pos_panier"]), avec une route POST dédiée pour chaque action.
+ **Difficultés / Obstacles** :
+ Délimiter les limites de la view.
+Rediriger après chaque traitement POST pour éviter qu'un rafraîchissementvde page renvoie deux fois le même formulaire, et faire transiter les messages de succès/erreur par la session puisqu'ils ne survivent pas à une redirection sinon.

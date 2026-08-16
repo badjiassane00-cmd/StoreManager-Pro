@@ -59,7 +59,7 @@ class VenteService
         return $commande;
     }
 
- 
+   
     public function validerVente(Commande $commande): int
     {
         if (!$commande->enregistrer()) {
@@ -98,7 +98,7 @@ class VenteService
         }
     }
 
-  
+   
     private function verifierDisponibiliteStock(Commande $commande): void
     {
         foreach ($commande->getLignes() as $ligne) {
@@ -116,7 +116,7 @@ class VenteService
         }
     }
 
-  
+    
     private function verifierLimiteCredit(Commande $commande): void
     {
         $resteAPayer = $commande->calculerResteAPayer();
