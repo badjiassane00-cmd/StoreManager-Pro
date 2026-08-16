@@ -62,3 +62,10 @@ la première c'était comment convertir les données venant de la base de donné
  **Difficultés / Obstacles** :
  Délimiter les limites de la view.
 Rediriger après chaque traitement POST pour éviter qu'un rafraîchissementvde page renvoie deux fois le même formulaire, et faire transiter les messages de succès/erreur par la session puisqu'ils ne survivent pas à une redirection sinon.
+
+
+
+**Ce qui a été fait** correction aporter sur les fichiers CommandeMondel et DetteMette
+
+ **Difficultés / Obstacles** :
+Certains étaient mal écrite , aprés review du code , j'ai réécrit ces blocs de requetes

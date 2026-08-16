@@ -80,54 +80,62 @@ class CommandeModel
         ]);
     }
 
-    public function getLignesParCommande(Commande $commande): array
-    {
-        $lignesSql = $this->db->executeQuery(
-            "SELECT * FROM lignes_commandes WHERE commande_id = :commande_id",
-            ["commande_id" => $commande->getId()],
-            false
+   public function getLignesParCommande(Commande $commande): array
+{
+    $sql = "SELECT * FROM lignes_commandes
+            WHERE commande_id = :commande_id";
+
+    $lignesSql = $this->db->executeQuery($sql, [
+        "commande_id" => $commande->getId()
+    ], false);
+
+    $lignes = [];
+
+    foreach ($lignesSql as $ligneSql) {
+        $lignes[] = $this->convertirEnLigneCommande(
+            $ligneSql,
+            $commande
         );
-
-        $lignes = [];
-
-        foreach ($lignesSql as $ligneSql) {
-            $lignes[] = $this->convertirEnLigneCommande($ligneSql, $commande);
-        }
-
-        return $lignes;
     }
 
-    public function getCommandeParId(int $id): ?Commande
-    {
-        $ligne = $this->db->executeQuery(
-            "SELECT * FROM commandes WHERE id = :id",
-            ["id" => $id]
-        );
+    return $lignes;
+}
 
-        if (!$ligne) {
-            return null;
-        }
+public function getCommandeParId(int $id): ?Commande
+{
+    $sql = "SELECT * FROM commandes WHERE id = :id";
 
-        $commande = $this->convertirEnCommande($ligne);
+    $ligne = $this->db->executeQuery($sql, [
+        "id" => $id
+    ]);
 
-        foreach ($this->getLignesParCommande($commande) as $ligneCommande) {
-            $commande->ajouterLigne($ligneCommande);
-        }
-
-        return $commande;
+    if (!$ligne) {
+        return null;
     }
 
-  
-    public function getCommandes(): array
-    {
-        $lignes = $this->db->query("SELECT * FROM commandes ORDER BY id DESC", false);
+    $commande = $this->convertirEnCommande($ligne);
 
-        $commandes = [];
+    $lignes = $this->getLignesParCommande($commande);
 
-        foreach ($lignes as $ligne) {
-            $commandes[] = $this->convertirEnCommande($ligne);
-        }
-
-        return $commandes;
+    foreach ($lignes as $ligneCommande) {
+        $commande->ajouterLigne($ligneCommande);
     }
+
+    return $commande;
+}
+
+public function getCommandes(): array
+{
+    $sql = "SELECT * FROM commandes ORDER BY id DESC";
+
+    $lignes = $this->db->query($sql, false);
+
+    $commandes = [];
+
+    foreach ($lignes as $ligne) {
+        $commandes[] = $this->convertirEnCommande($ligne);
+    }
+
+    return $commandes;
+}
 }

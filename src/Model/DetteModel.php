@@ -46,34 +46,37 @@ class DetteModel
         ]);
     }
 
-    public function getDetteParId(int $id): ?Dette
-    {
-        $ligne = $this->db->executeQuery(
-            "SELECT * FROM dettes WHERE id = :id",
-            ["id" => $id]
-        );
+   public function getDetteParId(int $id): ?Dette
+{
+    $sql = "SELECT * FROM dettes WHERE id = :id";
 
-        if (!$ligne) {
-            return null;
-        }
+    $ligne = $this->db->executeQuery($sql, [
+        "id" => $id
+    ]);
 
-        return $this->convertirEnDette($ligne);
+    if (!$ligne) {
+        return null;
     }
 
-    public function getDettesParClient(int $clientId): array
-    {
-        $lignes = $this->db->executeQuery(
-            "SELECT * FROM dettes WHERE client_id = :client_id ORDER BY id DESC",
-            ["client_id" => $clientId],
-            false
-        );
+    return $this->convertirEnDette($ligne);
+}
 
-        $dettes = [];
+public function getDettesParClient(int $clientId): array
+{
+    $sql = "SELECT * FROM dettes
+            WHERE client_id = :client_id
+            ORDER BY id DESC";
 
-        foreach ($lignes as $ligne) {
-            $dettes[] = $this->convertirEnDette($ligne);
-        }
+    $lignes = $this->db->executeQuery($sql, [
+        "client_id" => $clientId
+    ], false);
 
-        return $dettes;
+    $dettes = [];
+
+    foreach ($lignes as $ligne) {
+        $dettes[] = $this->convertirEnDette($ligne);
     }
+
+    return $dettes;
+}
 }
