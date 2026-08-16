@@ -48,7 +48,7 @@ class POSController
         $this->session->unset("pos_erreur");
         $this->session->unset("pos_succes");
 
-        require_once dirname(__DIR__, 2)."/views/pos/index.php";
+       require_once dirname(__DIR__) . "/Views/Pos/index.php";
     }
 
     

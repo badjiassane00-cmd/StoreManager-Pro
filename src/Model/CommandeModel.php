@@ -1,10 +1,10 @@
 <?php
-require_once dirname(__DIR__)."/Core/Database.php";
-require_once "Entity/Commande.php";
-require_once "Entity/LigneCommande.php";
-require_once "ClientModel.php";
-require_once "UtilisateurModel.php";
-require_once "ProduitModel.php";
+require_once dirname(__DIR__) . "/Core/Database.php";
+require_once __DIR__ . "/Entity/Commande.php";
+require_once __DIR__ . "/Entity/LigneCommande.php";
+require_once __DIR__ . "/ClientModel.php";
+require_once __DIR__ . "/UtilisateurModel.php";
+require_once __DIR__ . "/ProduitModel.php";
 
 class CommandeModel
 {

@@ -1,6 +1,6 @@
 <?php
-require_once "BonLivraison.php";
-require_once "Produit.php";
+require_once __DIR__ . "/BonLivraison.php";
+require_once __DIR__ . "/Produit.php";
 
 class LigneBonLivraison
 {

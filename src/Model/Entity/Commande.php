@@ -1,7 +1,7 @@
 <?php
-require_once "Client.php";
-require_once "Utilisateur.php";
-require_once "LigneCommande.php";
+require_once __DIR__ . "/Client.php";
+require_once __DIR__ . "/Utilisateur.php";
+require_once __DIR__ . "/LigneCommande.php";
 
 class Commande
 {

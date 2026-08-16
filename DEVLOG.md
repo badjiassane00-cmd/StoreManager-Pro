@@ -69,3 +69,7 @@ Rediriger après chaque traitement POST pour éviter qu'un rafraîchissementvde 
 
  **Difficultés / Obstacles** :
 Certains étaient mal écrite , aprés review du code , j'ai réécrit ces blocs de requetes
+
+
+**Heure de réalisation** : 18H30
+ **Difficultés / Obstacles** : J'ai corrigé les bugs concernant les requires car l'éxution corrige toujours problèmes.

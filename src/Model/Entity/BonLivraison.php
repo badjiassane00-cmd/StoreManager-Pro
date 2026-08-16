@@ -1,7 +1,7 @@
 <?php
-require_once "Fournisseur.php";
-require_once "Utilisateur.php";
-require_once "LigneBonLivraison.php";
+require_once __DIR__ . "/Fournisseur.php";
+require_once __DIR__ . "/Utilisateur.php";
+require_once __DIR__ . "/LigneBonLivraison.php";
 
 class BonLivraison
 {

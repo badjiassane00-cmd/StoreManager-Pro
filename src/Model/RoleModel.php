@@ -1,6 +1,6 @@
 <?php
-require_once dirname(__DIR__)."/Core/Database.php";
-require_once "Entity/Role.php";
+require_once dirname(__DIR__) . "/Core/Database.php";
+require_once __DIR__ . "/Entity/Role.php";
 
 class RoleModel
 {

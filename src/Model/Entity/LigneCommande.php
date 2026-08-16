@@ -1,6 +1,6 @@
 <?php
-require_once "Commande.php";
-require_once "Produit.php";
+require_once __DIR__ . "/Commande.php";
+require_once __DIR__ . "/Produit.php";
 
 class LigneCommande
 {

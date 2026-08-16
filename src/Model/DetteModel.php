@@ -1,8 +1,8 @@
 <?php
-require_once dirname(__DIR__)."/Core/Database.php";
-require_once "Entity/Dette.php";
-require_once "ClientModel.php";
-require_once "CommandeModel.php";
+require_once dirname(__DIR__) . "/Core/Database.php";
+require_once __DIR__ . "/Entity/Dette.php";
+require_once __DIR__ . "/ClientModel.php";
+require_once __DIR__ . "/CommandeModel.php";
 
 class DetteModel
 {

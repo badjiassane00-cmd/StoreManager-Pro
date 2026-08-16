@@ -1,5 +1,5 @@
 <?php
-require_once "Dette.php";
+require_once __DIR__ . "/Dette.php";
 
 class PaiementDette
 {

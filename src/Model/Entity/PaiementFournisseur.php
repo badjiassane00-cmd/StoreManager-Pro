@@ -1,6 +1,6 @@
 <?php
-require_once "Fournisseur.php";
-require_once "BonLivraison.php";
+require_once __DIR__ . "/Fournisseur.php";
+require_once __DIR__ . "/BonLivraison.php";
 
 class PaiementFournisseur
 {
