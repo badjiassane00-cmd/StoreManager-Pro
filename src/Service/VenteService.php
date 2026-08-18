@@ -1,55 +1,76 @@
 <?php
-require_once dirname(__DIR__)."/Core/Database.php";
-require_once dirname(__DIR__)."/Model/Entity/Commande.php";
-require_once dirname(__DIR__)."/Model/Entity/LigneCommande.php";
-require_once dirname(__DIR__)."/Model/Entity/Dette.php";
-require_once dirname(__DIR__)."/Model/CommandeModel.php";
-require_once dirname(__DIR__)."/Model/DetteModel.php";
-require_once dirname(__DIR__)."/Model/ProduitModel.php";
-require_once dirname(__DIR__)."/Model/ClientModel.php";
-require_once dirname(__DIR__)."/Model/UtilisateurModel.php";
 
+require_once dirname(__DIR__) . "/Core/Database.php";
+require_once dirname(__DIR__) . "/Model/Entity/Commande.php";
+require_once dirname(__DIR__) . "/Model/Entity/LigneCommande.php";
+require_once dirname(__DIR__) . "/Model/Entity/Dette.php";
+require_once dirname(__DIR__) . "/Model/CommandeModel.php";
+require_once dirname(__DIR__) . "/Model/DetteModel.php";
+require_once dirname(__DIR__) . "/Model/ProduitModel.php";
+require_once dirname(__DIR__) . "/Model/ClientModel.php";
+require_once dirname(__DIR__) . "/Model/UtilisateurModel.php";
 
 class VenteService
 {
-    private Database $db;
+    private static ?Database $db = null;
 
-    private CommandeModel $commandeModel;
-    private DetteModel $detteModel;
-    private ProduitModel $produitModel;
-    private ClientModel $clientModel;
-    private UtilisateurModel $utilisateurModel;
-
-    public function __construct()
+    private static function getDb(): Database
     {
-        $this->db = Database::getInstance();
-        $this->commandeModel = new CommandeModel();
-        $this->detteModel = new DetteModel();
-        $this->produitModel = new ProduitModel();
-        $this->clientModel = new ClientModel();
-        $this->utilisateurModel = new UtilisateurModel();
-    }
-
-   
-    public function construireCommande(?int $clientId, int $utilisateurId, array $panier, float $montantVerse): Commande
-    {
-        $client = $clientId !== null ? $this->clientModel->getClientParId($clientId) : null;
-        $utilisateur = $this->utilisateurModel->getUtilisateurParId($utilisateurId);
-
-        if ($utilisateur === null) {
-            throw new RuntimeException("Utilisateur introuvable (id ".$utilisateurId.").");
+        if (self::$db === null) {
+            self::$db = Database::getInstance();
         }
 
-        $commande = new Commande(0, $client, $utilisateur, $montantVerse);
+        return self::$db;
+    }
+
+    public static function construireCommande(
+        ?int $clientId,
+        int $utilisateurId,
+        array $panier,
+        float $montantVerse
+    ): Commande {
+
+        $client = $clientId !== null
+            ? ClientModel::getClientParId($clientId)
+            : null;
+
+        $utilisateur = UtilisateurModel::getUtilisateurParId(
+            $utilisateurId
+        );
+
+        if ($utilisateur === null) {
+            throw new RuntimeException(
+                "Utilisateur introuvable (id " . $utilisateurId . ")."
+            );
+        }
+
+        $commande = new Commande(
+            0,
+            $client,
+            $utilisateur,
+            $montantVerse
+        );
 
         foreach ($panier as $produitId => $quantite) {
-            $produit = $this->produitModel->getProduitParId((int) $produitId);
+
+            $produit = ProduitModel::getProduitParId(
+                (int) $produitId
+            );
 
             if ($produit === null) {
-                throw new RuntimeException("Produit introuvable (id ".$produitId.").");
+                throw new RuntimeException(
+                    "Produit introuvable (id " . $produitId . ")."
+                );
             }
 
-            $ligne = new LigneCommande(0, $commande, $produit, (int) $quantite, $produit->getPrixUnitaire());
+            $ligne = new LigneCommande(
+                0,
+                $commande,
+                $produit,
+                (int) $quantite,
+                $produit->getPrixUnitaire()
+            );
+
             $commande->ajouterLigne($ligne);
         }
 
@@ -59,66 +80,109 @@ class VenteService
         return $commande;
     }
 
-   
-    public function validerVente(Commande $commande): int
+    public static function validerVente(Commande $commande): int
     {
         if (!$commande->enregistrer()) {
-            throw new RuntimeException("La commande est vide ou son montant total est invalide.");
+            throw new RuntimeException(
+                "La commande est vide ou son montant total est invalide."
+            );
         }
 
-        $this->verifierDisponibiliteStock($commande);
-        $this->verifierLimiteCredit($commande);
+        self::verifierDisponibiliteStock($commande);
+        self::verifierLimiteCredit($commande);
 
-        $pdo = $this->db->connexion();
+        $pdo = self::getDb()->connexion();
+
         $pdo->beginTransaction();
 
         try {
-            $commandeId = $this->commandeModel->creerCommande($commande);
+
+            $commandeId = CommandeModel::creerCommande($commande);
 
             foreach ($commande->getLignes() as $ligne) {
-                $this->commandeModel->ajouterLigne($commandeId, $ligne);
-                $this->decrementerStockProduit($ligne->getProduit()->getId(), $ligne->getQuantite());
+
+                CommandeModel::ajouterLigne(
+                    $commandeId,
+                    $ligne
+                );
+
+                self::decrementerStockProduit(
+                    $ligne->getProduit()->getId(),
+                    $ligne->getQuantite()
+                );
             }
 
             $resteAPayer = $commande->calculerResteAPayer();
 
-            if ($resteAPayer > 0 && $commande->getClient() !== null) {
-                $commandePersistee = $this->commandeModel->getCommandeParId($commandeId);
-                $dette = new Dette(0, $commandePersistee, $commande->getClient(), $resteAPayer);
-                $this->detteModel->creerDette($dette);
+            if (
+                $resteAPayer > 0 &&
+                $commande->getClient() !== null
+            ) {
+
+                $commandePersistee = CommandeModel::getCommandeParId(
+                    $commandeId
+                );
+
+                $dette = new Dette(
+                    0,
+                    $commandePersistee,
+                    $commande->getClient(),
+                    $resteAPayer
+                );
+
+                DetteModel::creerDette($dette);
             }
 
             $pdo->commit();
 
             return $commandeId;
+
         } catch (Exception $exception) {
+
             $pdo->rollBack();
 
             throw $exception;
         }
     }
 
-   
-    private function verifierDisponibiliteStock(Commande $commande): void
-    {
+    private static function verifierDisponibiliteStock(
+        Commande $commande
+    ): void {
+
         foreach ($commande->getLignes() as $ligne) {
-            $produit = $this->produitModel->getProduitParId($ligne->getProduit()->getId());
+
+            $produit = ProduitModel::getProduitParId(
+                $ligne->getProduit()->getId()
+            );
 
             if ($produit === null) {
-                throw new RuntimeException("Produit introuvable (id ".$ligne->getProduit()->getId().").");
+                throw new RuntimeException(
+                    "Produit introuvable (id " .
+                    $ligne->getProduit()->getId() .
+                    ")."
+                );
             }
 
-            if ($ligne->getQuantite() > $produit->getQuantiteStock()) {
+            if (
+                $ligne->getQuantite() >
+                $produit->getQuantiteStock()
+            ) {
+
                 throw new RuntimeException(
-                    "Stock insuffisant pour \"".$produit->getNom()."\" (disponible : ".$produit->getQuantiteStock().")."
+                    "Stock insuffisant pour \"" .
+                    $produit->getNom() .
+                    "\" (disponible : " .
+                    $produit->getQuantiteStock() .
+                    ")."
                 );
             }
         }
     }
 
-    
-    private function verifierLimiteCredit(Commande $commande): void
-    {
+    private static function verifierLimiteCredit(
+        Commande $commande
+    ): void {
+
         $resteAPayer = $commande->calculerResteAPayer();
 
         if ($resteAPayer <= 0) {
@@ -128,25 +192,49 @@ class VenteService
         $client = $commande->getClient();
 
         if ($client === null) {
-            throw new RuntimeException("Une vente à crédit doit être rattachée à un client.");
+            throw new RuntimeException(
+                "Une vente à crédit doit être rattachée à un client."
+            );
         }
 
-        $encoursActuel = $this->clientModel->calculerEncoursTotal($client->getId());
-        $peutEmprunter = $client->peutEmprunter($resteAPayer, $encoursActuel);
+        $encoursActuel = ClientModel::calculerEncoursTotal(
+            $client->getId()
+        );
+
+        $peutEmprunter = $client->peutEmprunter(
+            $resteAPayer,
+            $encoursActuel
+        );
 
         if (!$peutEmprunter) {
             throw new RuntimeException(
-                "Limite de crédit dépassée pour \"".$client->getNom()."\" (limite : ".$client->getLimiteCredit()." FCFA)."
+                "Limite de crédit dépassée pour \"" .
+                $client->getNom() .
+                "\" (limite : " .
+                $client->getLimiteCredit() .
+                " FCFA)."
             );
         }
     }
 
-   
-    private function decrementerStockProduit(int $produitId, int $quantite): void
-    {
-        $produit = $this->produitModel->getProduitParId($produitId);
+    private static function decrementerStockProduit(
+        int $produitId,
+        int $quantite
+    ): void {
+
+        $produit = ProduitModel::getProduitParId($produitId);
+
+        if ($produit === null) {
+            throw new RuntimeException(
+                "Produit introuvable (id " . $produitId . ")."
+            );
+        }
+
         $produit->decrementerStock($quantite);
 
-        $this->produitModel->mettreAJourStock($produitId, $produit->getQuantiteStock());
+        ProduitModel::mettreAJourStock(
+            $produitId,
+            $produit->getQuantiteStock()
+        );
     }
 }
