@@ -32,7 +32,6 @@ class RoleModel
 public function getRoleParId(int $id): ?Role
 {
     $sql = "SELECT * FROM roles WHERE id = :id";
-
     $ligne = $this->db->executeQuery($sql, [
         "id" => $id
     ]);

@@ -59,9 +59,7 @@ class BonLivraison
         return $this->statutReglement;
     }
 
-    /**
-     * @return LigneBonLivraison[]
-     */
+   
     public function getLignes(): array
     {
         return $this->lignes;
