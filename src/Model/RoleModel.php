@@ -1,60 +1,69 @@
 <?php
+
 require_once dirname(__DIR__) . "/Core/Database.php";
 require_once __DIR__ . "/Entity/Role.php";
 
 class RoleModel
 {
-    public Database $db;
+    private static ?Database $db = null;
 
-    public function __construct()
+    private static function getDb(): Database
     {
-        $this->db = Database::getInstance();
+        if (self::$db === null) {
+            self::$db = Database::getInstance();
+        }
+
+        return self::$db;
     }
 
-    private function convertirEnRole(array $ligne): Role
+    private static function convertirEnRole(array $ligne): Role
     {
-        return new Role((int) $ligne["id"], $ligne["nom"]);
+        return new Role(
+            (int) $ligne["id"],
+            $ligne["nom"]
+        );
     }
 
-    public function getRoles(): array
+    public static function getRoles(): array
     {
-        $lignes = $this->db->getAllTables("roles");
+        $lignes = self::getDb()->getAllTables("roles");
 
         $roles = [];
 
         foreach ($lignes as $ligne) {
-            $roles[] = $this->convertirEnRole($ligne);
+            $roles[] = self::convertirEnRole($ligne);
         }
 
         return $roles;
     }
 
-public function getRoleParId(int $id): ?Role
-{
-    $sql = "SELECT * FROM roles WHERE id = :id";
-    $ligne = $this->db->executeQuery($sql, [
-        "id" => $id
-    ]);
+    public static function getRoleParId(int $id): ?Role
+    {
+        $sql = "SELECT * FROM roles WHERE id = :id";
 
-    if (!$ligne) {
-        return null;
+        $ligne = self::getDb()->executeQuery($sql, [
+            "id" => $id
+        ]);
+
+        if (!$ligne) {
+            return null;
+        }
+
+        return self::convertirEnRole($ligne);
     }
 
-    return $this->convertirEnRole($ligne);
-}
+    public static function getRoleParNom(string $nom): ?Role
+    {
+        $sql = "SELECT * FROM roles WHERE nom = :nom";
 
-public function getRoleParNom(string $nom): ?Role
-{
-    $sql = "SELECT * FROM roles WHERE nom = :nom";
+        $ligne = self::getDb()->executeQuery($sql, [
+            "nom" => $nom
+        ]);
 
-    $ligne = $this->db->executeQuery($sql, [
-        "nom" => $nom
-    ]);
+        if (!$ligne) {
+            return null;
+        }
 
-    if (!$ligne) {
-        return null;
+        return self::convertirEnRole($ligne);
     }
-
-    return $this->convertirEnRole($ligne);
-}
 }

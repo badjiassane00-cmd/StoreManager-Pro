@@ -1,4 +1,5 @@
 <?php
+
 require_once dirname(__DIR__) . "/Core/Database.php";
 require_once __DIR__ . "/Entity/Dette.php";
 require_once __DIR__ . "/ClientModel.php";
@@ -6,22 +7,26 @@ require_once __DIR__ . "/CommandeModel.php";
 
 class DetteModel
 {
-    public Database $db;
+    private static ?Database $db = null;
 
-    private ClientModel $clientModel;
-    private CommandeModel $commandeModel;
-
-    public function __construct()
+    private static function getDb(): Database
     {
-        $this->db = Database::getInstance();
-        $this->clientModel = new ClientModel();
-        $this->commandeModel = new CommandeModel();
+        if (self::$db === null) {
+            self::$db = Database::getInstance();
+        }
+
+        return self::$db;
     }
 
-    private function convertirEnDette(array $ligne): Dette
+    private static function convertirEnDette(array $ligne): Dette
     {
-        $commande = $this->commandeModel->getCommandeParId((int) $ligne["commande_id"]);
-        $client = $this->clientModel->getClientParId((int) $ligne["client_id"]);
+        $commande = CommandeModel::getCommandeParId(
+            (int) $ligne["commande_id"]
+        );
+
+        $client = ClientModel::getClientParId(
+            (int) $ligne["client_id"]
+        );
 
         return new Dette(
             (int) $ligne["id"],
@@ -32,51 +37,53 @@ class DetteModel
         );
     }
 
-    public function creerDette(Dette $dette): int
+    public static function creerDette(Dette $dette): int
     {
-        $sql = "INSERT INTO dettes (commande_id, client_id, montant_initial, montant_paye, statut)
-                VALUES (:commande_id, :client_id, :montant_initial, :montant_paye, :statut)";
+        $sql = "INSERT INTO dettes
+                (commande_id, client_id, montant_initial, montant_paye, statut)
+                VALUES
+                (:commande_id, :client_id, :montant_initial, :montant_paye, :statut)";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "commande_id" => $dette->getCommande()->getId(),
             "client_id" => $dette->getClient()->getId(),
             "montant_initial" => $dette->getMontantInitial(),
             "montant_paye" => $dette->getMontantPaye(),
-            "statut" => $dette->getStatut(),
+            "statut" => $dette->getStatut()
         ]);
     }
 
-   public function getDetteParId(int $id): ?Dette
-{
-    $sql = "SELECT * FROM dettes WHERE id = :id";
+    public static function getDetteParId(int $id): ?Dette
+    {
+        $sql = "SELECT * FROM dettes WHERE id = :id";
 
-    $ligne = $this->db->executeQuery($sql, [
-        "id" => $id
-    ]);
+        $ligne = self::getDb()->executeQuery($sql, [
+            "id" => $id
+        ]);
 
-    if (!$ligne) {
-        return null;
+        if (!$ligne) {
+            return null;
+        }
+
+        return self::convertirEnDette($ligne);
     }
 
-    return $this->convertirEnDette($ligne);
-}
+    public static function getDettesParClient(int $clientId): array
+    {
+        $sql = "SELECT * FROM dettes
+                WHERE client_id = :client_id
+                ORDER BY id DESC";
 
-public function getDettesParClient(int $clientId): array
-{
-    $sql = "SELECT * FROM dettes
-            WHERE client_id = :client_id
-            ORDER BY id DESC";
+        $lignes = self::getDb()->executeQuery($sql, [
+            "client_id" => $clientId
+        ], false);
 
-    $lignes = $this->db->executeQuery($sql, [
-        "client_id" => $clientId
-    ], false);
+        $dettes = [];
 
-    $dettes = [];
+        foreach ($lignes as $ligne) {
+            $dettes[] = self::convertirEnDette($ligne);
+        }
 
-    foreach ($lignes as $ligne) {
-        $dettes[] = $this->convertirEnDette($ligne);
+        return $dettes;
     }
-
-    return $dettes;
-}
 }

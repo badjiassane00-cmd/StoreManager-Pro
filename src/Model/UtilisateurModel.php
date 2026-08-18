@@ -1,19 +1,23 @@
 <?php
+
 require_once dirname(__DIR__) . "/Core/Database.php";
 require_once __DIR__ . "/Entity/Utilisateur.php";
 require_once __DIR__ . "/Entity/Role.php";
 
 class UtilisateurModel
 {
-    public Database $db;
+    private static ?Database $db = null;
 
-    public function __construct()
+    private static function getDb(): Database
     {
-        $this->db = Database::getInstance();
+        if (self::$db === null) {
+            self::$db = Database::getInstance();
+        }
+
+        return self::$db;
     }
 
-  
-    private function requeteBase(): string
+    private static function requeteBase(): string
     {
         return "SELECT
                     u.id AS id,
@@ -27,9 +31,14 @@ class UtilisateurModel
                 INNER JOIN roles r ON u.role_id = r.id";
     }
 
-    private function convertirEnUtilisateur(array $ligne): Utilisateur
-    {
-        $role = new Role((int) $ligne["role_id"], $ligne["role_nom"]);
+    private static function convertirEnUtilisateur(
+        array $ligne
+    ): Utilisateur {
+        
+        $role = new Role(
+            (int) $ligne["role_id"],
+            $ligne["role_nom"]
+        );
 
         return new Utilisateur(
             (int) $ligne["id"],
@@ -41,41 +50,52 @@ class UtilisateurModel
         );
     }
 
-    public function getUtilisateurs(): array
+    public static function getUtilisateurs(): array
     {
-        $sql = $this->requeteBase()." ORDER BY u.nom ASC";
-        $lignes = $this->db->query($sql, false);
+        $sql = self::requeteBase() . " ORDER BY u.nom ASC";
+
+        $lignes = self::getDb()->query($sql, false);
 
         $utilisateurs = [];
 
         foreach ($lignes as $ligne) {
-            $utilisateurs[] = $this->convertirEnUtilisateur($ligne);
+            $utilisateurs[] = self::convertirEnUtilisateur($ligne);
         }
 
         return $utilisateurs;
     }
 
-    public function getUtilisateurParId(int $id): ?Utilisateur
-    {
-        $sql = $this->requeteBase()." WHERE u.id = :id";
-        $ligne = $this->db->executeQuery($sql, ["id" => $id]);
+    public static function getUtilisateurParId(
+        int $id
+    ): ?Utilisateur {
+
+        $sql = self::requeteBase() . " WHERE u.id = :id";
+
+        $ligne = self::getDb()->executeQuery($sql, [
+            "id" => $id
+        ]);
 
         if (empty($ligne)) {
             return null;
         }
 
-        return $this->convertirEnUtilisateur($ligne);
+        return self::convertirEnUtilisateur($ligne);
     }
 
-    public function getUtilisateurParEmail(string $email): ?Utilisateur
-    {
-        $sql = $this->requeteBase()." WHERE u.email = :email";
-        $ligne = $this->db->executeQuery($sql, ["email" => $email]);
+    public static function getUtilisateurParEmail(
+        string $email
+    ): ?Utilisateur {
+
+        $sql = self::requeteBase() . " WHERE u.email = :email";
+
+        $ligne = self::getDb()->executeQuery($sql, [
+            "email" => $email
+        ]);
 
         if (empty($ligne)) {
             return null;
         }
 
-        return $this->convertirEnUtilisateur($ligne);
+        return self::convertirEnUtilisateur($ligne);
     }
 }

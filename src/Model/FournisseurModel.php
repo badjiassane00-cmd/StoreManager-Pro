@@ -1,17 +1,22 @@
 <?php
+
 require_once dirname(__DIR__) . "/Core/Database.php";
 require_once __DIR__ . "/Entity/Fournisseur.php";
 
 class FournisseurModel
 {
-    public Database $db;
+    private static ?Database $db = null;
 
-    public function __construct()
+    private static function getDb(): Database
     {
-        $this->db = Database::getInstance();
+        if (self::$db === null) {
+            self::$db = Database::getInstance();
+        }
+
+        return self::$db;
     }
 
-    private function convertirEnFournisseur(array $ligne): Fournisseur
+    private static function convertirEnFournisseur(array $ligne): Fournisseur
     {
         return new Fournisseur(
             (int) $ligne["id"],
@@ -22,59 +27,66 @@ class FournisseurModel
         );
     }
 
-    public function getFournisseurs(): array
+    public static function getFournisseurs(): array
     {
-        $lignes = $this->db->getAllTables("fournisseurs");
+        $lignes = self::getDb()->getAllTables("fournisseurs");
 
         $fournisseurs = [];
 
         foreach ($lignes as $ligne) {
-            $fournisseurs[] = $this->convertirEnFournisseur($ligne);
+            $fournisseurs[] = self::convertirEnFournisseur($ligne);
         }
 
         return $fournisseurs;
     }
 
-   public function getFournisseurParId(int $id): ?Fournisseur
-{
-    $sql = "SELECT * FROM fournisseurs WHERE id = :id";
+    public static function getFournisseurParId(int $id): ?Fournisseur
+    {
+        $sql = "SELECT * FROM fournisseurs WHERE id = :id";
 
-    $ligne = $this->db->executeQuery($sql, [
-        "id" => $id
-    ]);
+        $ligne = self::getDb()->executeQuery($sql, [
+            "id" => $id
+        ]);
 
-    if (!$ligne) {
-        return null;
+        if (!$ligne) {
+            return null;
+        }
+
+        return self::convertirEnFournisseur($ligne);
     }
 
-    return $this->convertirEnFournisseur($ligne);
-}
-
-    public function creerFournisseur(Fournisseur $fournisseur): int
+    public static function creerFournisseur(Fournisseur $fournisseur): int
     {
-        $sql = "INSERT INTO fournisseurs (nom, telephone, adresse, email)
-                VALUES (:nom, :telephone, :adresse, :email)";
+        $sql = "INSERT INTO fournisseurs
+                (nom, telephone, adresse, email)
+                VALUES
+                (:nom, :telephone, :adresse, :email)";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "nom" => $fournisseur->getNom(),
             "telephone" => $fournisseur->getTelephone(),
             "adresse" => $fournisseur->getAdresse(),
-            "email" => $fournisseur->getEmail(),
+            "email" => $fournisseur->getEmail()
         ]);
     }
 
-    public function mettreAJourFournisseur(Fournisseur $fournisseur): int
-    {
+    public static function mettreAJourFournisseur(
+        Fournisseur $fournisseur
+    ): int {
+        
         $sql = "UPDATE fournisseurs
-                SET nom = :nom, telephone = :telephone, adresse = :adresse, email = :email
+                SET nom = :nom,
+                    telephone = :telephone,
+                    adresse = :adresse,
+                    email = :email
                 WHERE id = :id";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "nom" => $fournisseur->getNom(),
             "telephone" => $fournisseur->getTelephone(),
             "adresse" => $fournisseur->getAdresse(),
             "email" => $fournisseur->getEmail(),
-            "id" => $fournisseur->getId(),
+            "id" => $fournisseur->getId()
         ]);
     }
 }

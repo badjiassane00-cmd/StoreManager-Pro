@@ -4,14 +4,15 @@ require_once __DIR__ . "/Entity/Client.php";
 
 class ClientModel
 {
-    public Database $db;
+    public static  ?Database $db=null;
 
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
+    private static function getDb(): Database{
+        if(self::$db === null){
+            self::$db = Database ::getInstance();
+        }
     }
 
-    private function convertirEnClient(array $ligne): Client
+    private static function convertirEnClient(array $ligne): Client
     {
         return new Client(
             (int) $ligne["id"],
@@ -22,24 +23,24 @@ class ClientModel
         );
     }
 
-    public function getClients(): array
+    public static function getClients(): array
     {
-        $lignes = $this->db->getAllTables("clients");
+        $lignes = self ::getDb()->getAllTables("clients");
 
         $clients = [];
 
         foreach ($lignes as $ligne) {
-            $clients[] = $this->convertirEnClient($ligne);
+            $clients[] = self::convertirEnClient($ligne);
         }
 
         return $clients;
     }
 
-   public function getClientParId(int $id): ?Client
+   public static function  getClientParId(int $id): ?Client
 {
     $sql = "SELECT * FROM clients WHERE id = :id";
 
-    $ligne = $this->db->executeQuery($sql, [
+    $ligne = self::getDb()->executeQuery($sql, [
         "id" => $id
     ]);
 
@@ -47,17 +48,17 @@ class ClientModel
         return null;
     }
 
-    return $this->convertirEnClient($ligne);
+    return self::convertirEnClient($ligne);
 }
 
    
-    public function calculerEncoursTotal(int $clientId): float
+    public static function calculerEncoursTotal(int $clientId): float
     {
         $sql = "SELECT COALESCE(SUM(montant_initial - montant_paye), 0) AS encours
                 FROM dettes
                 WHERE client_id = :client_id AND statut != :statut_soldee";
 
-        $ligne = $this->db->executeQuery($sql, [
+        $ligne = self::getDb()->executeQuery($sql, [
             "client_id" => $clientId,
             "statut_soldee" => "SOLDEE",
         ]);
@@ -65,12 +66,12 @@ class ClientModel
         return (float) ($ligne["encours"] ?? 0);
     }
 
-    public function saveClient(Client $client): int
+    public static function saveClient(Client $client): int
     {
         $sql = "INSERT INTO clients (nom, telephone, email, limite_credit)
                 VALUES (:nom, :telephone, :email, :limite_credit)";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "nom" => $client->getNom(),
             "telephone" => $client->getTelephone(),
             "email" => $client->getEmail(),
@@ -78,13 +79,13 @@ class ClientModel
         ]);
     }
 
-    public function updateClient(Client $client): int
+    public static function updateClient(Client $client): int
     {
         $sql = "UPDATE clients
                 SET nom = :nom, telephone = :telephone, email = :email, limite_credit = :limite_credit
                 WHERE id = :id";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "nom" => $client->getNom(),
             "telephone" => $client->getTelephone(),
             "email" => $client->getEmail(),

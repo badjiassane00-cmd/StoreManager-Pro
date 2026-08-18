@@ -1,17 +1,22 @@
 <?php
+
 require_once dirname(__DIR__) . "/Core/Database.php";
 require_once __DIR__ . "/Entity/Produit.php";
 
 class ProduitModel
 {
-    public Database $db;
+    private static ?Database $db = null;
 
-    public function __construct()
+    private static function getDb(): Database
     {
-        $this->db = Database::getInstance();
+        if (self::$db === null) {
+            self::$db = Database::getInstance();
+        }
+
+        return self::$db;
     }
 
-    private function convertirEnProduit(array $ligne): Produit
+    private static function convertirEnProduit(array $ligne): Produit
     {
         return new Produit(
             (int) $ligne["id"],
@@ -22,86 +27,106 @@ class ProduitModel
         );
     }
 
-    public function getProduits(): array
+    public static function getProduits(): array
     {
-        $lignes = $this->db->getAllTables("produits");
+        $lignes = self::getDb()->getAllTables("produits");
 
         $produits = [];
 
         foreach ($lignes as $ligne) {
-            $produits[] = $this->convertirEnProduit($ligne);
+            $produits[] = self::convertirEnProduit($ligne);
         }
 
         return $produits;
     }
 
-   public function getProduitParId(int $id): ?Produit
-{
-    $sql = "SELECT * FROM produits WHERE id = :id";
+    public static function getProduitParId(int $id): ?Produit
+    {
+        $sql = "SELECT * FROM produits WHERE id = :id";
 
-    $ligne = $this->db->executeQuery($sql, [
-        "id" => $id
-    ]);
+        $ligne = self::getDb()->executeQuery($sql, [
+            "id" => $id
+        ]);
 
-    if (!$ligne) {
-        return null;
+        if (!$ligne) {
+            return null;
+        }
+
+        return self::convertirEnProduit($ligne);
     }
 
-    return $this->convertirEnProduit($ligne);
-}
-
-    public function rechercherParNom(string $terme): array
+    public static function rechercherParNom(string $terme): array
     {
-        $operateur = ($this->db->connexion()->getAttribute(PDO::ATTR_DRIVER_NAME) === "pgsql") ? "ILIKE" : "LIKE";
+        $operateur = (
+            self::getDb()
+                ->connexion()
+                ->getAttribute(PDO::ATTR_DRIVER_NAME) === "pgsql"
+        ) ? "ILIKE" : "LIKE";
 
-        $sql = "SELECT * FROM produits WHERE nom $operateur :terme ORDER BY nom ASC";
-        $lignes = $this->db->executeQuery($sql, ["terme" => "%".$terme."%"], false);
+        $sql = "SELECT * FROM produits
+                WHERE nom $operateur :terme
+                ORDER BY nom ASC";
+
+        $lignes = self::getDb()->executeQuery(
+            $sql,
+            ["terme" => "%" . $terme . "%"],
+            false
+        );
 
         $produits = [];
 
         foreach ($lignes as $ligne) {
-            $produits[] = $this->convertirEnProduit($ligne);
+            $produits[] = self::convertirEnProduit($ligne);
         }
 
         return $produits;
     }
 
-    public function creerProduit(Produit $produit): int
+    public static function creerProduit(Produit $produit): int
     {
-        $sql = "INSERT INTO produits (nom, prix_unitaire, quantite_stock, seuil_alerte)
-                VALUES (:nom, :prix_unitaire, :quantite_stock, :seuil_alerte)";
+        $sql = "INSERT INTO produits
+                (nom, prix_unitaire, quantite_stock, seuil_alerte)
+                VALUES
+                (:nom, :prix_unitaire, :quantite_stock, :seuil_alerte)";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "nom" => $produit->getNom(),
             "prix_unitaire" => $produit->getPrixUnitaire(),
             "quantite_stock" => $produit->getQuantiteStock(),
-            "seuil_alerte" => $produit->getSeuilAlerte(),
+            "seuil_alerte" => $produit->getSeuilAlerte()
         ]);
     }
 
-    public function mettreAJourProduit(Produit $produit): int
+    public static function mettreAJourProduit(Produit $produit): int
     {
         $sql = "UPDATE produits
-                SET nom = :nom, prix_unitaire = :prix_unitaire,
-                    quantite_stock = :quantite_stock, seuil_alerte = :seuil_alerte
+                SET nom = :nom,
+                    prix_unitaire = :prix_unitaire,
+                    quantite_stock = :quantite_stock,
+                    seuil_alerte = :seuil_alerte
                 WHERE id = :id";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "nom" => $produit->getNom(),
             "prix_unitaire" => $produit->getPrixUnitaire(),
             "quantite_stock" => $produit->getQuantiteStock(),
             "seuil_alerte" => $produit->getSeuilAlerte(),
-            "id" => $produit->getId(),
+            "id" => $produit->getId()
         ]);
     }
 
-    public function mettreAJourStock(int $produitId, int $nouvelleQuantite): int
-    {
-        $sql = "UPDATE produits SET quantite_stock = :quantite WHERE id = :id";
+    public static function mettreAJourStock(
+        int $produitId,
+        int $nouvelleQuantite
+    ): int {
+        
+        $sql = "UPDATE produits
+                SET quantite_stock = :quantite
+                WHERE id = :id";
 
-        return $this->db->executeUpdate($sql, [
+        return self::getDb()->executeUpdate($sql, [
             "quantite" => $nouvelleQuantite,
-            "id" => $produitId,
+            "id" => $produitId
         ]);
     }
 }
